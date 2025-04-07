@@ -9,46 +9,52 @@ from collections import namedtuple
 # Define named tuple for sequence information
 SequenceInfo = namedtuple('SequenceInfo', ['sequence', 'id', 'is_match'])
 
-def find_neighboring_cds(cds_ids_df: pl.DataFrame, ds: datasets.Dataset, query_cds_id: str, n_neighbors: int = 5):
+
+def find_neighboring_cds_batch(cds_ids_df: pl.DataFrame, cds_df: pl.DataFrame, query_cds_ids: List[str], n_neighbors: int = 5):
     """
-    Find n_neighbors CDS entries before and after a given CDS ID, including both IDs and sequences.
+    Find n_neighbors CDS entries before and after multiple query CDS IDs, including both IDs and sequences.
+    Uses batch filtering for better performance.
     
     Args:
-        cds_ids_df: Polars DataFrame containing CDS information (must be exploded with row_idx)
-        ds: HuggingFace dataset containing both CDS IDs and sequences
-        query_cds_id: The CDS ID to find neighbors for
+        cds_ids_df: Polars DataFrame containing CDS IDs (must be exploded with row_idx)
+        cds_df: Polars DataFrame containing both CDS IDs and sequences
+        query_cds_ids: List of CDS IDs to find neighbors for
         n_neighbors: Number of neighbors to find before and after (default: 5)
     
     Returns:
-        Tuple containing:
-        - List of SequenceInfo named tuples containing sequence and ID information
-        - Index of the query CDS in the returned list
+        List of lists of SequenceInfo named tuples, one list per query CDS ID
     """
-    # Find the row index
-    query_row_idx = cds_ids_df.filter(pl.col('CDS_ids') == query_cds_id).select('row_idx').item()
-
-    # Get the corresponding row from the HuggingFace dataset
-    ds_row = ds[query_row_idx]
+    # Find row indices for all query IDs at once
+    query_indices = cds_ids_df.filter(pl.col('CDS_ids').is_in(query_cds_ids)).select(['CDS_ids', 'row_idx'])
     
-    cds_ids = ds_row['CDS_ids']
-    cds_seqs = ds_row['CDS_seqs']
+    # Process each query ID
+    results = []
+    for query_cds_id in query_cds_ids:
+        # Get the row index for this query
+        query_row_idx = query_indices.filter(pl.col('CDS_ids') == query_cds_id).select('row_idx').item()
+        
+        # Get the corresponding row from the DataFrame
+        row = cds_df.row(query_row_idx)
+        cds_ids = row[0]  # First column is CDS_ids
+        cds_seqs = row[1]  # Second column is CDS_seqs
+        
+        # Find the index of the query CDS
+        query_idx = cds_ids.index(query_cds_id)
+        
+        # Get the sequences and IDs for neighbors
+        start_idx = max(0, query_idx - n_neighbors)
+        end_idx = min(len(cds_ids), query_idx + n_neighbors + 1)
+        
+        sequences = [
+            SequenceInfo(
+                sequence=cds_seqs[i], 
+                id=cds_ids[i],
+                is_match=(i == query_idx)
+            ) for i in range(start_idx, end_idx)
+        ]
+        results.append(sequences)
     
-    # Find the index of the query CDS
-    query_idx = cds_ids.index(query_cds_id)
-    
-    # Get the sequences and IDs for neighbors
-    start_idx = max(0, query_idx - n_neighbors)
-    end_idx = min(len(cds_ids), query_idx + n_neighbors + 1)
-    
-    # Create the contig list with all sequences using list comprehension
-    sequences = [
-        SequenceInfo(
-            sequence=cds_seqs[i], 
-            id=cds_ids[i],
-            is_match=(i == query_idx)
-        ) for i in range(start_idx, end_idx)
-    ]
-    return sequences
+    return results
 
 def context_search(
     cds_id: str,
@@ -56,7 +62,7 @@ def context_search(
     collection_name: str,
     search_limit: int,
     cds_ids_df: pl.DataFrame,
-    ds: datasets.Dataset,
+    cds_df: pl.DataFrame,
 ) -> list[dict]:
     """Search for similar sequences and get their genomic context.
     
@@ -66,7 +72,7 @@ def context_search(
         collection_name: Name of Qdrant collection to search
         search_limit: Maximum number of search results to return
         cds_ids_df: DataFrame containing CDS IDs and row indices
-        ds: Dataset containing CDS sequences and metadata
+        cds_df: DataFrame containing both CDS IDs and sequences
         
     Returns:
         List of dictionaries containing genomic context for each search result
@@ -91,7 +97,7 @@ def context_search(
                 )
     search_result_ids = [r.payload["cds_id"] for r in results]
     
-    contexts = [find_neighboring_cds(cds_ids_df, ds, retrieved_id) for retrieved_id in search_result_ids]
+    contexts = find_neighboring_cds_batch(cds_ids_df, cds_df, search_result_ids)
     return contexts
 
 

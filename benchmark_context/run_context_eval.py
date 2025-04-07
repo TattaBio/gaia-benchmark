@@ -14,7 +14,8 @@ def main(collection_name: str, save_name: str, test_file: str, qdrant_api: str):
     # Initialize client and load data
     client = QdrantClient(url=qdrant_api, timeout=1000, prefer_grpc=False)
     ds = datasets.load_dataset(HF_DATASET_NAME)['train']
-    cds_ids_df = ds.remove_columns([col for col in ds.column_names if col != 'CDS_ids']).to_polars().with_row_index('row_idx').explode('CDS_ids')
+    cds_df = ds.remove_columns([col for col in ds.column_names if col not in ['CDS_ids', 'CDS_seqs']]).to_polars()
+    cds_ids_df = cds_df.select('CDS_ids').with_row_index('row_idx').explode('CDS_ids')
     
     ids = [record.id for record in SeqIO.parse(test_file, "fasta")]
     
@@ -27,7 +28,7 @@ def main(collection_name: str, save_name: str, test_file: str, qdrant_api: str):
             collection_name=collection_name,
             search_limit=TOP_K+1,
             cds_ids_df=cds_ids_df,
-            ds=ds
+            cds_df=cds_df
         )
         responses.append(response)
     
