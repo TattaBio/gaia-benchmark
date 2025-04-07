@@ -129,10 +129,10 @@ def calculate_context_recall(responses: List[List[SequenceInfo]]) -> List[List[i
     return all_results
 
 
-def run_blastp(queries: List[str], contexts: List[List[str]]) -> List[int]:
-    # If no contexts, return zeros
+def run_blastp(queries: List[str], contexts: List[List[str]]) -> List[float]:
+    # If no contexts, return empty lists.
     if not contexts:
-        return [0 for _ in range(len(contexts))], []
+        return [], []
     # Create temporary files
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as query_file, \
          tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as subject_file, \
@@ -198,6 +198,8 @@ def run_blastp(queries: List[str], contexts: List[List[str]]) -> List[int]:
                 if float(pident) > 50 and int(qcovs) > 50:
                     correct_context[result_index] += 1
                     correct_context_info[result_index].append((qseqid, sseqid, pident, qseq, sseq, qcovs))
-        print(correct_context)
-        return correct_context, correct_context_info
+        
+        # Normalize by context length
+        normalized_hits = [hits / len(context) for hits, context in zip(correct_context, contexts)]
+        return normalized_hits, correct_context_info
 

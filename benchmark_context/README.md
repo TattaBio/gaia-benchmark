@@ -43,7 +43,7 @@ python run_context_eval_from_m8.py \
 Evaluates context sensitivity using sequence search through BLASTp:
 
 ```bash
-blastp -query data/cluster_sampled_3k.fasta -db /mnt/raid0/andre/blastp_output/blastdb -out data/cluster_sampled_3k_blast_result.m8 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads 100
+blastp -query data/cluster_sampled_3k.fasta -db blastdb -out data/cluster_sampled_3k_blast_result.m8 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads 20
 ```
 
 ```bash
