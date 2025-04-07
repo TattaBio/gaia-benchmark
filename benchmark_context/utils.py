@@ -25,7 +25,6 @@ def find_neighboring_cds(cds_ids_df: pl.DataFrame, ds: datasets.Dataset, query_c
         - Index of the query CDS in the returned list
     """
     # Find the row index
-    import time
     query_row_idx = cds_ids_df.filter(pl.col('CDS_ids') == query_cds_id).select('row_idx').item()
 
     # Get the corresponding row from the HuggingFace dataset
@@ -125,6 +124,9 @@ def calculate_context_recall(responses: List[List[SequenceInfo]]) -> List[List[i
 
 
 def run_blastp(queries: List[str], contexts: List[List[str]]) -> List[int]:
+    # If no contexts, return zeros
+    if not contexts:
+        return [0 for _ in range(len(contexts))], []
     # Create temporary files
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as query_file, \
          tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as subject_file, \
@@ -134,7 +136,6 @@ def run_blastp(queries: List[str], contexts: List[List[str]]) -> List[int]:
         for i, query in enumerate(queries):
             query_file.write(f">{i}\n{query}\n")
 
-        # Write subjects to file
         for i, context in enumerate(contexts):
             for j, subject in enumerate(context):
                 subject_file.write(f">{i}_{j}\n{subject}\n")

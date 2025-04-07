@@ -21,3 +21,34 @@ python run_context_eval.py \
     --test_file "data/cluster_sampled_3k.fasta" \
     --qdrant_api "http://localhost:6333"
 ```
+
+
+## MMseqs Search Evaluation
+
+Evaluates context sensitivity using sequence search through MMseqs:
+
+```bash
+mmseqs easy-search data/cluster_sampled_3k.fasta mmseqs_90_db data/cluster_sampled_3k_mmseqs_result.m8 tmp --db-load-mode 2 --threads 20
+```
+
+```bash
+python run_context_eval_from_m8.py \
+    --m8_file "data/cluster_sampled_3k_mmseqs_result.m8" \
+    --save_name "mmseqs_results_3k.pkl" \
+    --test_file "data/cluster_sampled_3k.fasta"
+```
+
+## BLASTp Search Evaluation
+
+Evaluates context sensitivity using sequence search through BLASTp:
+
+```bash
+blastp -query data/cluster_sampled_3k.fasta -db /mnt/raid0/andre/blastp_output/blastdb -out data/cluster_sampled_3k_blast_result.m8 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads 100
+```
+
+```bash
+python run_context_eval_from_m8.py \
+    --m8_file "data/cluster_sampled_3k_blast_result.m8" \
+    --save_name "blastp_results_3k.pkl" \
+    --test_file "data/cluster_sampled_3k.fasta"
+```
