@@ -34,10 +34,9 @@ python tokenize_dataset.py  \
 
 ## Embed proteins
 
-Run gLM2 inference and save protein embeddings and ids
- to HDF5 file.
+Run inference and save protein embeddings and ids to HDF5 file.
 
-With gLM2 with contrastive finteuning:
+With gLM2 embedding model:
 
 ```bash
 accelerate launch --config_file configs_accelerate/ddp.yaml \
@@ -50,7 +49,7 @@ accelerate launch --config_file configs_accelerate/ddp.yaml \
 ```
 
 
-Or for ESM2
+Or with ESM2
 ```bash
 accelerate launch --config_file configs_accelerate/ddp.yaml --mixed_precision=fp16  \
     embed_esm.py \
