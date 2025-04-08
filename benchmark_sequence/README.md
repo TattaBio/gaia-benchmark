@@ -1,17 +1,16 @@
 ## Sequence Retrieval Benchmark
 
-### 1. Extract Query Proteins
+### 1. Sample Query Proteins
 ```bash
 seqkit sample -n 1200 OG_90.fasta > queries.fasta
 ```
 ### 2. BLASTp Ground Truth Generation
-
 ```bash
 python create_blastp_groundtruth.py \
     --query_fasta queries.fasta \
     --target_fasta OG_90.fasta \
     --output_dir blastp_output_dir \
-    --threads 100
+    --threads 20
 ```
 
 ### 3. MMseqs2 Search

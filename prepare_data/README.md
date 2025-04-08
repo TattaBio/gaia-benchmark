@@ -2,6 +2,14 @@
 Scripts for preparing data for Gaia benchmarking including dataset embedding and setting up Qdrant vector database.
 This is only needed for running `benchmark_sequence` and `benchmark_context`.
 
+## Convert HuggingFace dataset to FASTA
+Convert a HuggingFace dataset to FASTA format for use with sequence search tools (BLASTp and MMSeqs):
+
+```bash
+python hf_to_fasta.py \
+    --dataset_name=tattabio/OG \
+    --output_file=OG_prot90.fasta
+```
 
 ## Tokenize dataset
 First tokenize and save the huggingface dataset.
@@ -26,7 +34,8 @@ python tokenize_dataset.py  \
 
 ## Embed proteins
 
-Run gLM2 inference and save protein embeddings and ids to HDF5 file.
+Run gLM2 inference and save protein embeddings and ids
+ to HDF5 file.
 
 With gLM2 with contrastive finteuning:
 

@@ -1,0 +1,14 @@
+accelerate>=1.4.0
+biopython>=1.85
+datasets>=3.3.2
+faiss-cpu>=1.10.0
+h5py>=3.10.0
+numpy>=1.25.0
+pandas>=2.2.3
+polars>=1.26.0
+qdrant-client>=1.13.3
+torch>=2.1.2
+tqdm>=4.67.1
+transformers>=4.49.0
+matplotlib>=3.10.1
+seaborn>=0.13.2 
