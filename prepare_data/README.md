@@ -55,11 +55,15 @@ accelerate launch --config_file configs_accelerate/ddp.yaml --mixed_precision=fp
 
 ## Upload to Qdrant
 
-Install and run Qdrant using Docker:
+Install and run Qdrant Vector Database using Docker:
 
 ```bash
-docker run -p 6333:6333 -p 6334:6334 \
-    -v $(pwd)/qdrant_storage:/qdrant/storage \
+docker pull qdrant/qdrant
+```
+
+```bash
+docker run -p 6333:6333 \
+    -v $(pwd)/path/to/data:/qdrant/storage \
     qdrant/qdrant
 ```
 
@@ -72,7 +76,7 @@ cargo run -- \
     --collection-name=gLM2_650M_embed_collection \
     --embeddings-file=/path/to/gLM2/embeddings.h5 \
     --embedding-dim=512 \
-    --qdrant-url=http://localhost:6334
+    --qdrant-url=http://localhost:6333
 ```
 
 For ESM2 embeddings:
@@ -82,5 +86,5 @@ cargo run -- \
     --collection-name=ESM2_650M_collection \
     --embeddings-file=/path/to/ESM2/embeddings.h5 \
     --embedding-dim=1280 \
-    --qdrant-url=http://localhost:6334
+    --qdrant-url=http://localhost:6333
 ```
