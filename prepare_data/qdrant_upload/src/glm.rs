@@ -2,36 +2,37 @@ use anyhow::Context;
 use hdf5::{types::VarLenUnicode, Dataset};
 use ndarray::s;
 
-pub struct PlmData<'a> {
+pub struct GlmData<'a> {
     pub ids: &'a Dataset,
     pub embeddings: &'a Dataset,
 }
 
-pub struct PlmEntry {
+pub struct GlmEntry {
     pub id: String,
     pub embedding: Vec<f32>,
 }
 
-pub struct ChunkedPlmDataIterator<'a> {
-    data: &'a PlmData<'a>,
+pub struct ChunkedGlmDataIterator<'a> {
+    data: &'a GlmData<'a>,
     cur_index: usize,
     chunk_size: usize,
 }
 
-impl PlmData<'_> {
-    pub fn iter(&self) -> impl Iterator<Item = PlmEntry> + '_ {
-        ChunkedPlmDataIterator {
+impl GlmData<'_> {
+    pub fn iter(&self) -> impl Iterator<Item = GlmEntry> + '_ {
+        ChunkedGlmDataIterator {
             data: self,
             cur_index: 0,
-            chunk_size: 1000,
+            chunk_size: 1000, // Read from the HDF5 file in chunks of 1000
         }
         .flatten()
     }
 }
 
-impl<'a> Iterator for ChunkedPlmDataIterator<'a> {
-    type Item = Vec<PlmEntry>;
+impl<'a> Iterator for ChunkedGlmDataIterator<'a> {
+    type Item = Vec<GlmEntry>;
 
+    /// Read the next chunk of data (ids and embeddings) from the HDF5 file.
     fn next(&mut self) -> Option<Self::Item> {
         let min_length = *[self.data.ids.shape()[0], self.data.embeddings.shape()[0]]
             .iter()
@@ -59,7 +60,7 @@ impl<'a> Iterator for ChunkedPlmDataIterator<'a> {
         self.cur_index += self.chunk_size;
         Some(
             ids.zip(embeddings)
-                .map(|(id, embedding)| PlmEntry { id, embedding })
+                .map(|(id, embedding)| GlmEntry { id, embedding })
                 .collect::<Vec<_>>(),
         )
     }
