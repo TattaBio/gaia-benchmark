@@ -2,6 +2,10 @@ use anyhow::Context;
 use hdf5::{types::VarLenUnicode, Dataset};
 use ndarray::s;
 
+// Read from the HDF5 file in chunks of 1000. Note that this places no
+// restrictions on the client.
+const HDF5_READ_CHUNK_SIZE: usize = 1000;
+
 pub struct GlmData<'a> {
     pub ids: &'a Dataset,
     pub embeddings: &'a Dataset,
@@ -23,7 +27,7 @@ impl GlmData<'_> {
         ChunkedGlmDataIterator {
             data: self,
             cur_index: 0,
-            chunk_size: 1000, // Read from the HDF5 file in chunks of 1000
+            chunk_size: HDF5_READ_CHUNK_SIZE,
         }
         .flatten()
     }

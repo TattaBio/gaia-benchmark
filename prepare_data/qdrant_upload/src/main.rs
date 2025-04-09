@@ -13,6 +13,7 @@ use uuid::Uuid;
 
 mod glm;
 
+// Upload this many embeddings at a time to Qdrant.
 const UPLOAD_CHUNK_SIZE: usize = 10000;
 
 /// Struct to hold CLI arguments for uploading to a Qdrant collection.
