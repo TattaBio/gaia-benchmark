@@ -1,9 +1,12 @@
 ## Sequence Retrieval Benchmark
 
 ### 1. Sample Query Proteins
+See [prepare_data](/prepare_data) directory for generating `OG_90.fasta` file.
+
 ```bash
 seqkit sample -n 1200 OG_90.fasta > queries.fasta
 ```
+
 ### 2. BLASTp Ground Truth Generation
 ```bash
 python create_blastp_groundtruth.py \
@@ -26,6 +29,8 @@ mmseqs easy-search queries.fasta OG_90_mmseqs_db data/mmseqs_results_seq.m8 tmp 
 ```
 
 ### 4. Qdrant Evaluation (for gLM2 and ESM2)
+
+See [prepare_data](/prepare_data) directory for generating Qdrant collections. Then run evaluation:
 
 ```bash
 python qdrant_eval.py \
